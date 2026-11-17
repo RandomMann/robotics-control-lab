@@ -5,11 +5,12 @@ duration = 10
 x_0 = 0.0
 v_0 = 2.0
 F = 10.0
-b = 0.5
+b_values = [0.2, 0.5, 1.0]
 m = 1.0
-dt_values = [0.2, 0.1, 0.05, 0.01]
-errors = []
 dt = 0.05
+x_ref = 10
+Kp = 2.0
+Kd = 1
 
 def dynamics(v, F, m, b):
     """Compute the derivatives of position and velocity."""
@@ -17,11 +18,11 @@ def dynamics(v, F, m, b):
     dvdt = (F - b * v) / m
     return dxdt, dvdt
 
-#print(dynamics(4, 10, 2, 0))
-#print(dynamics(4, 10, 2, 1))
+def controller(x, x_ref, Kp, v, Kd):
+    F = Kp * (x_ref - x) - Kd * v
+    return F
 
-
-def simulate(x_0, v_0, F, m, b, dt, duration):    
+def simulate(x_0, v_0, x_ref, m, b, dt, duration, Kp, Kd):    
     """Simulate 1D motion using the forward Euler method."""
     x = x_0
     v = v_0
@@ -31,6 +32,7 @@ def simulate(x_0, v_0, F, m, b, dt, duration):
     velocity = [v_0]
     # Integrate the equations of motion using forward Euler.
     for i in range(steps):
+        F = controller(x, x_ref, Kp, v, Kd)
         dxdt, dvdt = dynamics(v, F, m, b)
         x = x + dxdt * dt
         v = v + dvdt * dt
@@ -39,14 +41,26 @@ def simulate(x_0, v_0, F, m, b, dt, duration):
         
     return(t, position, velocity)
 
-t, position, velocity = simulate(
-    x_0, v_0, F, m, b, dt, duration
-)
 
-#plt.plot(t, analytical_position, label="Analytical")
-plt.plot(t, velocity, label="Velocity")
+
+for b in b_values:
+    t, position, velocity = simulate(
+    x_0=x_0,
+    v_0=v_0,
+    x_ref=x_ref,
+    m=m,
+    b=b,
+    dt=dt,
+    duration=duration,
+    Kp=Kp,
+    Kd=Kd,
+)
+    plt.plot(t, position, label=f"b = {b}")
+    tao = m / b 
+    print(f"b = {b}, tao = {tao:.2f} s")
+
 plt.xlabel("Time (s)")
-plt.ylabel("Velocity (m/s)")
-plt.grid()
+plt.ylabel("positions (m)")
 plt.legend()
+plt.grid()
 plt.show()
