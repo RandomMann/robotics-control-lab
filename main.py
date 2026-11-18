@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 duration = 10
+last_outside = None
 x_0 = 0.0
 v_0 = 2.0
 F = 10.0
@@ -12,6 +13,7 @@ x_ref = 10
 tolerance = 0.02 * abs(x_ref)
 Kp = 2.0
 Kd = 1
+
 
 def dynamics(v, F, m, b):
     """Compute the derivatives of position and velocity."""
@@ -61,9 +63,13 @@ for b in b_values:
     Mp = max(0, (max(position) - x_ref) / x_ref * 100)
     for i in range(len(position)):
         error = abs(position[i] - x_ref)
-        if error <= tolerance:
-        print("Settling Time is {t.2f}")
+
+        if error > tolerance:
+            last_outside = i
+            settling_time = t[last_outside + 1]
+    
     print(f"b = {b}, tao = {tao:.2f} s, Mp = {Mp:.2f} %")
+    print(f"Settling Time is {settling_time:.2f} s")
 
 plt.xlabel("Time (s)")
 plt.ylabel("positions (m)")
