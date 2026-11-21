@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 duration = 10
 x_0 = 0.0
 v_0 = 2.0
-F = 10.0
 b = 0.5
 m = 1.0
 dt = 0.05
@@ -12,16 +11,6 @@ x_ref = 10
 tolerance = 0.02 * abs(x_ref)
 Kp = 2.0
 Kd_values = [0.2, 1.0, 3.0]
-
-A = np.array([
-    [0, 1],
-    [0, -b / m]
-])
-
-B = np.array([
-    [0],
-    [1 / m]
-])
 
 def dynamics(v, F, m, b):
     """Compute the derivatives of position and velocity."""
@@ -35,28 +24,38 @@ def controller(x, x_ref, Kp, v, Kd):
 
 def simulate(x_0, v_0, x_ref, m, b, dt, duration, Kp, Kd):    
     """Simulate 1D motion using the forward Euler method."""
-    x = x_0
-    v = v_0
-    steps = int(round(duration / dt))
-    t = np.linspace(0, duration, steps + 1)
+    A = np.array([
+    [0, 1],
+    [0, -b / m]
+ ])
+
+    B = np.array([
+    [0],
+    [1 / m]
+ ])
+
     position = [x_0]
     velocity = [v_0]
-    # Integrate the equations of motion using forward Euler.
+    steps = int(round(duration / dt))
+    t = np.linspace(0, duration, steps + 1)
+
+    state = np.array([
+    [x_0],
+    [v_0]
+ ])
+
+ # Integrate the equations of motion using forward Euler.
     for i in range(steps):
+        x = state[0, 0]
+        v = state[1, 0]
         F = controller(x, x_ref, Kp, v, Kd)
         dxdt, dvdt = dynamics(v, F, m, b)
-        x = x + dxdt * dt
-        v = v + dvdt * dt
-        position.append(x)
-        velocity.append(v)
+        state_dot = A @ state + B * F
+        state = state + dt * state_dot
+        position.append(state[0,0])
+        velocity.append(state[1,0])
         
     return(t, position, velocity)
-
-x = np.array([
-    [x],
-    [v]
-])
-
 
 for Kd in Kd_values:
     t, position, velocity = simulate(
@@ -88,7 +87,7 @@ for Kd in Kd_values:
         if error > tolerance:
             last_outside = i
 
-    if last_outside == None:
+    if last_outside is None:
         settling_time = 0.0
     elif last_outside == len(position) - 1:
         settling_time = None
