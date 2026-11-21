@@ -34,15 +34,19 @@ def simulate(x_0, v_0, x_ref, m, b, dt, duration, Kp, Kd):
     [1 / m]
  ])
 
-    position = [x_0]
-    velocity = [v_0]
-    steps = int(round(duration / dt))
-    t = np.linspace(0, duration, steps + 1)
-
     state = np.array([
     [x_0],
     [v_0]
  ])
+
+    Z = np.array([
+    [x - x_ref],
+    [v]    
+ ])
+    position = [x_0]
+    velocity = [v_0]
+    steps = int(round(duration / dt))
+    t = np.linspace(0, duration, steps + 1)
 
  # Integrate the equations of motion using forward Euler.
     for i in range(steps):
